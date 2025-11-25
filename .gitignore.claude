@@ -1,0 +1,56 @@
+# ══════════════════════════════════════════════════════════════════
+# .gitignore.claude
+# Configuration pour projets utilisant le workflow Claude Code
+#
+# Stratégie : VERSIONNER le contexte projet (backlog, openspec, CLAUDE.md)
+#             pour faciliter la collaboration en équipe
+# ══════════════════════════════════════════════════════════════════
+
+# ──────────────────────────────────────────────────────────────────
+# Fichiers de backup générés par les scripts
+# ──────────────────────────────────────────────────────────────────
+CLAUDE.md.backup.*
+
+# ──────────────────────────────────────────────────────────────────
+# Cache et fichiers temporaires Claude Code
+# ──────────────────────────────────────────────────────────────────
+.claude/cache/
+.claude/tmp/
+.claude/*.log
+
+# ──────────────────────────────────────────────────────────────────
+# Node modules (si backlog.md / openspec installés localement)
+# ──────────────────────────────────────────────────────────────────
+node_modules/
+
+# ──────────────────────────────────────────────────────────────────
+# Fichiers système
+# ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ══════════════════════════════════════════════════════════════════
+# FICHIERS À VERSIONNER (NE PAS AJOUTER ICI)
+# ══════════════════════════════════════════════════════════════════
+#
+# ✅ CLAUDE.md                    - Contexte du projet
+# ✅ backlog.md                   - Liste des tâches
+# ✅ backlog/                     - Détails des tâches
+# ✅ openspec/                    - Spécifications
+# ✅ .claude/commands/            - Slash commands
+# ✅ setup-*.sh, merge-*.sh       - Scripts de setup
+# ✅ workflow_*.md                - Documentation
+#
+# Ces fichiers doivent être commités pour partager le contexte
+# entre tous les développeurs de l'équipe.
+# ══════════════════════════════════════════════════════════════════
+
+# ──────────────────────────────────────────────────────────────────
+# Configuration personnelle (optionnel, selon besoins)
+# ──────────────────────────────────────────────────────────────────
+# Si vous voulez que chaque dev ait son propre backlog :
+# backlog.md
+# backlog/
+
+# Si vous voulez que les specs actives restent locales :
+# openspec/changes/
