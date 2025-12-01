@@ -4,7 +4,7 @@
 >
 > Transforme n'importe quel projet en projet optimisé pour Claude Code avec un état des lieux complet de la codebase.
 
-**Version**: 1.0.0 | **Last Updated**: 2025-11-24 | **Maintainers**: @fgitconseil
+**Version**: 1.2.1 | **Last Updated**: 2025-11-28 | **Maintainers**: @fgitconseil
 
 ---
 
@@ -32,15 +32,33 @@
 bash /chemin/vers/standardisation_claude_code/scripts/install-claude-workflow.sh /chemin/vers/votre-projet
 ```
 
-**Ce que le script fait automatiquement** :
-- ✅ Installe ClaudeForge (analyse codebase)
-- ✅ Installe Backlog.md (gestion tâches CLI vanilla)
-- ✅ Installe OpenSpec (spécifications formelles)
-- ✅ Crée 7 slash commands personnalisés
-- ✅ Copie les scripts workflow dans votre projet
-- ✅ Initialise backlog.md et openspec/
+**Le script vous demandera de choisir un mode** :
 
-**Temps d'installation** : ~5-10 minutes
+#### Mode 1 : COMPLET (défaut)
+- ✅ ClaudeForge + Backlog.md + OpenSpec
+- ✅ Gestion tâches Kanban intégrée
+- ✅ Specs formelles Divio
+- ✅ Workflow : `/context` → `/task` → `/plan` → `/spec` → `/work` → `/done` → `/ship`
+
+#### Mode 2 : LÉGER
+- ✅ ClaudeForge uniquement
+- ✅ YAML files (component-catalog.yml, docs-index.yml)
+- ✅ Utilise GitHub Issues ou outil externe pour tâches
+- ✅ Workflow : `/context` → `/plan` → `/doc` → `/done` → `/ship`
+
+**Choisissez le Mode LÉGER si** :
+- Vous utilisez déjà GitHub Issues, Jira, Linear, etc.
+- Vous préférez une approche minimaliste
+- Vous ne voulez pas installer de dépendances npm supplémentaires
+
+**Choisissez le Mode COMPLET si** :
+- Vous voulez une solution tout-en-un
+- Vous aimez avoir un Kanban board en CLI
+- Vous créez des features complexes nécessitant specs formelles
+
+**Temps d'installation** : ~5-10 minutes (Mode COMPLET) | ~2-3 minutes (Mode LÉGER)
+
+**💡 Recommandation** : Installez aussi [context7 MCP server](#-mcp-server-recommandé) pour avoir des docs de bibliothèques toujours à jour (évite les hallucinations d'API)
 
 ### 2. Générer l'état des lieux de votre projet
 
@@ -87,9 +105,46 @@ claude
 
 ## 🏗️ Architecture Complète
 
+### Architecture Unifiée : 2 Skills + 1 CLI
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    ARCHITECTURE GLOBALE                         │
+│              ARCHITECTURE UNIFIÉE SKILLS + CLI                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ClaudeForge (Skill)         # Gère CLAUDE.md                  │
+│  ~/.claude/skills/claudeforge-skill/                           │
+│  ✅ Intelligence contextuelle (analyse codebase)                │
+│  ✅ Slash commands natifs (/enhance-claude-md)                 │
+│                                                                 │
+│  Specs Wrapper (Skill)       # Gère specs/docs Divio           │
+│  ~/.claude/skills/specs-skill/                                 │
+│  ✅ Intelligence contextuelle (lit CLAUDE.md)                   │
+│  ✅ Slash commands natifs (/spec, /validate-spec)              │
+│  ↓ appelle                                                      │
+│  OpenSpec CLI (vanilla)      # Logique métier                  │
+│  npm install -g openspec                                        │
+│  ✅ Portabilité (CI/CD)                                         │
+│  ✅ Maintenance externe (Fission-AI)                            │
+│                                                                 │
+│  Backlog.md (CLI vanilla)    # Gère tâches                    │
+│  npm install -g backlog.md                                      │
+│  ✅ Portabilité (CI/CD)                                         │
+│  ✅ Maintenance externe                                         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Philosophie** :
+- **Skills** = Intelligence contextuelle + Intégration Claude Code
+- **CLI vanilla** = Logique métier + Portabilité + Maintenance externe
+- **Wrapper léger** = Meilleur des deux mondes
+
+### Diagramme de Contexte
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    CONTEXTE DU PROJET                           │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐  │
@@ -327,47 +382,77 @@ backlog task edit <id>        # Éditer tâche
 
 > ⚠️ **Important** : Ce workflow utilise **Backlog.md vanilla** (CLI standard), **PAS Backlog.md MCP** (tools `mcp__backlog__*`).
 
-### 3. OpenSpec (Spécifications Formelles)
+### 3. OpenSpec + Specs Skill (Spécifications Divio)
 
-**Rôle** : Créer des spécifications formelles pour features complexes.
+**Rôle** : Créer des spécifications formelles avec intelligence contextuelle.
+
+**Architecture** :
+- **Specs Skill** (wrapper) : Intelligence contextuelle, génération adaptative
+- **OpenSpec CLI** (vanilla) : Logique métier, portabilité CI/CD
 
 **Installation** :
 ```bash
 npm install -g openspec
+# + Specs Skill installé automatiquement par install-claude-workflow.sh
 ```
 
 **Fonctionnalités** :
-- ✅ Template de specs structurées
-- ✅ Versioning des specs
-- ✅ Archivage après implémentation
+- ✅ Template Divio (1 fichier avec 4 blocs)
+- ✅ Génération contextuelle (analyse CLAUDE.md + code)
+- ✅ Versioning et archivage
 
-**Format de spec** :
+**Format OpenSpec v2 (Divio)** :
 ```markdown
 # Feature Name
 
-## Context
-[Pourquoi cette feature existe]
+## 📚 Tutorial (Learning-oriented)
+[Guide d'apprentissage pas-à-pas]
 
-## Specs
-[Comportement attendu détaillé]
+## 🛠️ How-to Guides (Goal-oriented)
+### Tâches d'Implémentation
+- [ ] Task 1: [Description]
+  - Fichiers impactés: [Liste]
+  - Estimation: [X heures]
 
-## Acceptance Criteria
-- [ ] Critère 1
-- [ ] Critère 2
+### Solutions Pratiques
+[Comment résoudre problèmes spécifiques]
 
-## Technical Notes
-[Contraintes techniques]
+## 📋 Reference (Information-oriented)
+### Comportement Attendu
+[API, interfaces, configuration]
+
+### Critères d'Acceptation
+- Given: [Contexte]
+- When: [Action]
+- Then: [Résultat]
+
+## 💡 Explanation (Understanding-oriented)
+### Contexte et Motivation
+[Pourquoi cette feature]
+
+### Architecture
+[Design technique, décisions]
+
+### Fichiers Impactés
+[Liste des fichiers à modifier/créer]
 ```
 
-**Commandes principales** :
+**Slash commands** (via Specs Skill) :
 ```bash
-openspec list                 # Lister specs
-openspec show <n>             # Afficher spec
-openspec create              # Créer nouvelle spec
-openspec archive <n>          # Archiver spec
+/spec "Feature Name"         # Créer spec Divio contextualisée
+/validate-spec               # Valider spec + cohérence
+/list-specs                  # Lister avec progression
 ```
+
+**Intelligence contextuelle** :
+- ✅ Lit CLAUDE.md (stack technique, architecture, patterns)
+- ✅ Analyse code (fichiers impactés, interfaces existantes)
+- ✅ Génère template adapté (exemples code dans bonne stack)
+- ✅ Crée tâche Backlog automatiquement
+- ✅ Met à jour État Projet
 
 **Performance** :
+- `/spec` création : 2-5 secondes (analyse + génération)
 - `openspec list` : < 1 seconde
 - `openspec show <n>` : < 1 seconde
 
@@ -382,7 +467,129 @@ openspec archive <n>          # Archiver spec
 - ❌ Bug fix isolé
 - ❌ Refactoring simple
 - ❌ Utilitaire simple
-- ❌ Documentation
+- ❌ Documentation seule
+
+---
+
+## 📚 Documents Structurants (v1.2)
+
+Le workflow installe automatiquement 2 fichiers YAML ultra-légers pour maintenir la cohérence du projet et éviter la duplication.
+
+### Format YAML Machine-Readable
+
+**Optimisation tokens** :
+- Format YAML compact (vs Markdown verbeux)
+- Projet vide : ~140 tokens total
+- Projet mature (30 composants + 50 docs) : ~320 tokens
+- **96% réduction vs format Markdown** (8000 tokens → 320 tokens)
+
+### 1. component-catalog.yml
+
+**Rôle** : Catalogue centralisé des composants réutilisables (UI, Backend, Infrastructure, Utilities)
+
+**Format** :
+```yaml
+stats:
+  total: 3
+  ui: 1
+  backend: 2
+
+components:
+  - name: UserAuth
+    type: backend
+    version: v1.0.0
+    stack: FastAPI
+    file: src/auth/user_auth.py
+```
+
+**Quand l'utiliser** :
+- ✅ Avant de créer un nouveau composant → Vérifier s'il existe déjà
+- ✅ Après création d'un composant réutilisable → Ajouter dans catalogue
+- ✅ Pour découvrir composants existants avant implémentation
+
+**Maintenance** :
+- **Automatique** : Via `/done` (checklist propose ajout si nouveau composant)
+- **Manuel** : Ajouter ligne dans `components:` + incrémenter `stats:`
+
+### 2. docs-index.yml
+
+**Rôle** : Index de toute la documentation selon framework Divio (4 quadrants)
+
+**Format** :
+```yaml
+tutorials:
+  - name: Getting Started
+    file: docs/tutorials/getting-started.md
+
+howto:
+  - name: Deploy to Production
+    file: docs/howto/deploy.md
+
+reference:
+  - name: API Reference
+    file: docs/reference/api.md
+
+explanation:
+  - name: Architecture Decisions
+    file: docs/explanation/architecture.md
+```
+
+**Quand l'utiliser** :
+- ✅ Avant de créer une doc → Vérifier qu'elle n'existe pas
+- ✅ Après création de doc → Ajouter dans quadrant Divio approprié
+- ✅ Pour naviguer dans la documentation existante
+
+**Maintenance** :
+- **Automatique** : Via `/done` (checklist propose ajout si nouvelle doc)
+- **Manuel** : Ajouter ligne dans quadrant approprié (`tutorials/howto/reference/explanation`)
+
+### Workflow Mis à Jour
+
+```bash
+# AU DÉMARRAGE
+/context
+# → Charge automatiquement :
+#    • CLAUDE.md
+#    • backlog.md
+#    • openspec/project.md
+#    • component-catalog.yml  ← NOUVEAU
+#    • docs-index.yml         ← NOUVEAU
+
+# TRAVAIL
+/task "Ajouter feature X"
+/plan
+/spec "Feature X"  # Crée spec.md Divio si complexe
+# Claude consulte component-catalog.yml et docs-index.yml
+# → Réutilise composants existants
+# → Évite documentation redondante
+
+# FIN DE SESSION
+/done
+# → Checklist automatique :
+#    • Mettre à jour backlog
+#    • Archiver specs OpenSpec
+#    • Mettre à jour État Projet
+#    • Mettre à jour component-catalog.yml (si nouveau composant)
+#    • Mettre à jour docs-index.yml (si nouvelle doc)
+#    • Ajouter DA-XXX dans README (si décision architecturale)
+```
+
+### Bénéfices
+
+**Anti-duplication** :
+- Claude connaît l'existant dès le démarrage
+- Principe "Réutiliser > Créer" appliqué systématiquement
+- Évite 45 min/session de duplication (ROI 180x vs surcharge +15 sec)
+
+**Performance** :
+- Chargement silencieux au startup
+- 0 friction utilisateur
+- Scalable jusqu'à 100+ composants (320 tokens max)
+
+**Format YAML** :
+- Machine-readable optimal pour LLM
+- Parsable et filtrable
+- Extensible (possibilité lazy loading futur si >100 composants)
 
 ---
 
@@ -745,6 +952,293 @@ Réorganiser en structure minimaliste :
 - Structure ultra-simple et claire
 - Pas de documentation externe nécessaire
 
+### DA-006: Framework Divio + Anti-Prolifération Documentation
+
+**Date**: 2025-11-25 | **Statut**: ✅ APPROUVÉ
+
+**Contexte** :
+- Claude Code a tendance à générer trop de documentation (synthèses, plans, analyses)
+- OpenSpec actuel fragmenté (proposal.md/tasks.md/specs/) = multiples fichiers
+- ProductCoder utilise avec succès le framework Divio (1 document avec 4 blocs)
+- Besoin de standardisation de la documentation produit
+
+**Décision** :
+1. **Adopter le framework Divio** pour OpenSpec (1 fichier spec.md avec 4 blocs)
+2. **Règles strictes anti-prolifération** : Interdire génération de docs hors workflow
+3. **Documentation limitée à 3 fichiers** : CLAUDE.md, backlog.md, openspec/spec.md
+
+**Structure OpenSpec v2 (Divio)** :
+```
+openspec/changes/[feature-name]/
+└── spec.md              # 1 seul fichier avec 4 blocs Divio
+    ├── 📚 Tutorial      # Learning-oriented
+    ├── 🛠️ How-to       # Goal-oriented (inclut tasks)
+    ├── 📋 Reference    # Information-oriented (inclut specs)
+    └── 💡 Explanation  # Understanding-oriented (inclut proposal)
+```
+
+**Règles anti-prolifération** (ajoutées dans CLAUDE.md) :
+- ❌ INTERDIT : synthèses (summary.md), plans migration (migration-plan.md), analyses (analysis.md)
+- ❌ INTERDIT : docs présentation (presentation.md), fichiers temporaires (.tmp, .draft)
+- ✅ AUTORISÉ : CLAUDE.md, backlog.md, openspec/spec.md, README.md (si demandé)
+
+**Raisons** :
+1. Réduction fragmentation : 3+ fichiers → 1 fichier (-66%)
+2. Collaboration simplifiée : Tous éditent le même document
+3. Standard reconnu : Framework Divio/Diátaxis (industrie)
+4. Couverture complète : 4 blocs obligent à couvrir tous aspects
+5. Contrôle prolifération : Règles strictes INTERDIT
+
+**Conséquences** :
+- ✅ Moins de fichiers à maintenir
+- ✅ Documentation plus complète (4 dimensions)
+- ✅ Meilleure collaboration (1 source de vérité)
+- ✅ Limite génération docs inutiles par Claude
+
+**Impact workflow** :
+- `/spec` → Crée spec.md avec template Divio (au lieu de proposal/tasks/specs)
+- `/work` → Lit spec.md (au lieu de 3 fichiers)
+- `/done` → Archive spec.md (simplifié)
+
+### DA-007: Wrapper Skill Specs (Architecture Hybride)
+
+**Date**: 2025-11-25 | **Statut**: ✅ APPROUVÉ
+
+**Contexte** :
+- DA-001 établit Backlog.md vanilla (CLI) pour universalité
+- ClaudeForge est un skill (intelligence contextuelle)
+- OpenSpec est un CLI (logique métier, portabilité)
+- Incohérence : skill vs CLI pour fonctions similaires
+- Question : Garder OpenSpec CLI ou créer skill complet ?
+
+**Décision** :
+Créer **wrapper skill léger** autour d'OpenSpec CLI (architecture hybride).
+
+**Architecture** :
+```
+Specs Skill (wrapper ~300 LOC)
+  ├── Intelligence contextuelle (lit CLAUDE.md)
+  ├── Slash commands natifs (/spec, /validate-spec)
+  ├── Templates Divio adaptatifs
+  ├── Automation cross-outils (Backlog, CLAUDE.md)
+  ↓ appelle
+OpenSpec CLI (vanilla)
+  ├── Logique métier
+  ├── Portabilité (CI/CD)
+  ├── Maintenance externe (Fission-AI)
+```
+
+**Ce que le wrapper ajoute** :
+1. **Analyse contextuelle** : Lit CLAUDE.md pour stack/architecture
+2. **Génération adaptative** : Template Divio pré-rempli selon projet
+3. **Analyse code** : Détecte fichiers impactés, interfaces à étendre
+4. **Automation** : Crée tâche Backlog auto, met à jour État Projet
+5. **Slash commands** : `/spec` au lieu de `openspec create`
+
+**Raisons** :
+1. Meilleur des deux mondes : Intelligence + Portabilité
+2. Effort minimal : 1-2 jours (vs 2-4 semaines skill complet)
+3. Cohérence architecturale : 2 skills (ClaudeForge + Specs) + 1 CLI (Backlog)
+4. Maintenance minimale : Logique métier externalisée
+5. ROI maximal : 70% bénéfices pour 10% effort
+
+**Conséquences** :
+- ✅ Skills = Intelligence contextuelle + Intégration Claude Code
+- ✅ CLI = Logique métier + Portabilité + Maintenance externe
+- ✅ Wrapper léger = Génération specs contextualisées
+- ⚠️ Dépendance OpenSpec CLI (acceptable, maintenance externe)
+- ✅ Slash commands natifs améliorent UX
+
+**Exemple workflow** :
+```bash
+# 1. Setup projet (une fois)
+/enhance-claude-md → ClaudeForge analyse → CLAUDE.md
+
+# 2. Nouvelle feature (à chaque fois)
+/spec "OAuth" → Specs Wrapper :
+  - Lit CLAUDE.md (stack détectée)
+  - Analyse code (trouve src/auth/* existants)
+  - Génère spec.md Divio pré-remplie
+  - Crée tâche Backlog automatiquement
+```
+
+---
+
+### DA-008: Documents Structurants YAML (Anti-Duplication)
+
+**Date**: 2025-11-25 | **Statut**: ✅ APPROUVÉ
+
+**Contexte** :
+- Claude crée souvent docs/composants redondants (manque de vision globale)
+- ProductCoder a COMPONENT_CATALOG.md + DIVIO_INDEX.md (Markdown verbeux)
+- Templates ProductCoder : 210 lignes (DIVIO_INDEX) + 266 lignes (COMPONENT_CATALOG)
+- Chargement au startup = 8000 tokens pour projet mature (4% context window) 🔴
+- Question : Intégrer ces éléments dans standardisation_claude_code ? Quel format ?
+
+**Décision** :
+Créer **templates YAML ultra-légers** pour projets cibles avec **format machine-readable**.
+
+**Raisons** :
+1. **96% réduction tokens** : YAML compact vs Markdown verbeux
+   - component-catalog.yml : 80 tokens vide, 120 tokens avec 30 composants (vs 2000 Markdown)
+   - docs-index.yml : 60 tokens vide, 200 tokens avec 50 docs (vs 3000 Markdown)
+   - Projet mature : 320 tokens total (vs 8000 Markdown)
+2. **Machine-readable optimal** : Parsable, filtrable, extensible pour LLM
+3. **Chargement automatique** : +20% tokens startup (1000 → 1200) vs +350% avec Markdown
+4. **Anti-duplication** : Claude consulte existant avant création
+5. **0 friction user** : Chargé silencieusement, maintenance via `/done`
+
+**Alternatives considérées** :
+
+**Option A** : Templates Markdown comme ProductCoder
+- ❌ 8000 tokens projet mature (inacceptable)
+- ❌ Verbosité (tableaux, emojis, descriptions longues)
+- ✅ Human-readable
+
+**Option B** : Lazy loading avec docs croisées
+- ✅ Optimal tokens (chargement à la demande)
+- ❌ Complexité implémentation (~3-4h vs 1h20)
+- ❌ Friction user (demandes explicites `/load-component`)
+- ❌ Vision partielle pour Claude
+
+**Option C** : YAML Simple Auto-load (CHOISIE)
+- ✅ Effort modéré (1h20)
+- ✅ 96% réduction tokens vs Markdown
+- ✅ Vision globale instantanée pour Claude
+- ✅ 0 friction, chargement transparent
+- ⚠️ Moins human-readable (acceptable pour machine-first)
+
+**Conséquences** :
+
+**Positives** :
+- ✅ Évite 45 min/session de duplication (ROI 180x)
+- ✅ Claude connaît l'existant dès le démarrage
+- ✅ Principe "Réutiliser > Créer" appliqué systématiquement
+- ✅ Scalable jusqu'à 100 composants/docs (320 tokens max)
+- ✅ Extensible : Possibilité lazy loading Phase 2 si >100 composants
+
+**Négatives / Compromis** :
+- ⚠️ YAML moins lisible pour humains (vs Markdown)
+- ⚠️ Maintenance manuelle possible (mitigé par checklist `/done`)
+- ⚠️ Pas optimal pour projets géants >100 composants (mais rare, évolution possible)
+
+**Fichiers impactés** :
+- `templates/component-catalog.yml` (nouveau)
+- `templates/docs-index.yml` (nouveau)
+- `templates/ADR_TEMPLATE.md` (nouveau)
+- `scripts/merge-claude-md.sh` (enrichi Protocole Session)
+- `.claude/commands/done.md` (enrichi checklist)
+- `scripts/install-claude-workflow.sh` (Phase 8 copie YAML)
+- `README.md` (documentation section v1.2)
+
+**Impact workflow** :
+```bash
+# Startup : +2 fichiers YAML (~140 tokens vides)
+CLAUDE.md + backlog.md + openspec/ + component-catalog.yml + docs-index.yml
+
+# /done : +2 checkboxes
+- [ ] Mettre à jour component-catalog.yml (si nouveau composant)
+- [ ] Mettre à jour docs-index.yml (si nouvelle doc)
+```
+
+**Version** : v1.2.0 → Ajout Documents Structurants YAML
+
+---
+
+### DA-009: Configuration Optionnelle Backlog/OpenSpec
+
+**Date**: 2025-11-28 | **Statut**: ✅ APPROUVÉ
+
+**Contexte** :
+- Le workflow standardisé installe Backlog.md + OpenSpec par défaut
+- Certains projets préfèrent des approches plus légères (GitHub Issues, discussions directes)
+- MagicDispatch et ProductCoder désactivent Backlog/OpenSpec au profit de YAML uniquement
+- Confusion : Backlog/OpenSpec sont-ils obligatoires ou optionnels ?
+
+**Décision** :
+**Backlog.md et OpenSpec sont OPTIONNELS**. Les projets peuvent les désactiver et utiliser uniquement :
+- `component-catalog.yml` (catalogue composants)
+- `docs-index.yml` (index documentation Divio)
+- CLAUDE.md (état projet + décisions)
+
+**Configuration AVEC Backlog/OpenSpec** (défaut) :
+```markdown
+## 🤖 INSTRUCTIONS POUR CLAUDE
+
+**Ce projet UTILISE :**
+- ✅ **Backlog.md** - Gestion tâches CLI
+- ✅ **OpenSpec** - Spécifications formelles Divio
+- ✅ **component-catalog.yml** - Catalogue composants
+- ✅ **docs-index.yml** - Index documentation
+
+**AU DÉMARRAGE :**
+1. Lire CLAUDE.md
+2. Lire backlog.md
+3. Lire openspec/project.md
+4. Lire component-catalog.yml
+5. Lire docs-index.yml
+```
+
+**Configuration SANS Backlog/OpenSpec** (alternative légère) :
+```markdown
+## 🤖 INSTRUCTIONS POUR CLAUDE
+
+**Ce projet N'UTILISE PAS :**
+- ❌ **Backlog.md** - Gestion tâches via GitHub Issues/Projects
+- ❌ **OpenSpec** - Spécifications via discussions directes
+
+**Ce projet UTILISE :**
+- ✅ **component-catalog.yml** - Catalogue composants
+- ✅ **docs-index.yml** - Index documentation Divio
+- ✅ **CLAUDE.md** - État du projet et instructions
+
+**AU DÉMARRAGE :**
+1. Lire CLAUDE.md
+2. Lire component-catalog.yml
+3. Lire docs-index.yml
+4. Confirmer compréhension et demander "On continue sur quoi ?"
+```
+
+**Raisons** :
+1. **Flexibilité** : Chaque projet a ses propres outils de gestion
+2. **Légèreté** : Certains projets n'ont pas besoin de Backlog/OpenSpec
+3. **Interopérabilité** : GitHub Issues, Jira, Linear, etc. déjà en place
+4. **Documentation Divio** : docs-index.yml suffit pour documenter features
+5. **Principe YAGNI** : Ne pas imposer outils non nécessaires
+
+**Conséquences** :
+
+**Avec Backlog/OpenSpec** :
+- ✅ Gestion tâches Kanban intégrée
+- ✅ Specs formelles Divio pour features complexes
+- ✅ Workflow complet `/task` → `/plan` → `/spec` → `/work`
+- ⚠️ Dépendances npm (backlog.md, openspec)
+
+**Sans Backlog/OpenSpec** :
+- ✅ Légèreté maximale (YAML + CLAUDE.md seulement)
+- ✅ Intégration outils existants (GitHub Issues, etc.)
+- ✅ Moins de dépendances
+- ⚠️ Slash commands adaptés : `/plan`, `/doc`, `/done`, `/ship` (pas `/task`, `/spec`, `/work`)
+- ⚠️ Documentation via `/doc` (crée docs Divio dans docs-index.yml)
+
+**Workflow adapté (sans Backlog/OpenSpec)** :
+```bash
+/context     # Charge CLAUDE.md + YAML files
+/plan        # Analyse et planification
+/doc "Feature X"  # Crée doc Divio pour feature complexe
+# Implémentation directe
+/done        # Màj CLAUDE.md + YAML
+/ship        # Tests + commit
+```
+
+**Impact** :
+- Documentation README.md clarifiée : "Backlog/OpenSpec sont optionnels"
+- Section Quick Start propose les deux modes
+- Templates slash commands adaptables (avec/sans backlog)
+- CLAUDE.md template contient les deux configurations possibles
+
+**Version** : v1.2.1 → Flexibilité Configuration Backlog/OpenSpec
+
 ---
 
 ## 🔄 Gestion Git (versionner le contexte)
@@ -753,6 +1247,7 @@ Réorganiser en structure minimaliste :
 
 ```bash
 git add CLAUDE.md backlog.md backlog/ openspec/ .claude/commands/
+git add component-catalog.yml docs-index.yml
 git add setup-project.sh setup-commands.sh merge-claude-md.sh .gitignore
 git commit -m "feat: Add Claude Code workflow with full project analysis"
 ```
@@ -761,6 +1256,8 @@ git commit -m "feat: Add Claude Code workflow with full project analysis"
 - ✅ `CLAUDE.md` - État du projet
 - ✅ `backlog.md` + `backlog/` - Tâches (sauf cache)
 - ✅ `openspec/` - Specs (sauf `.openspec/`)
+- ✅ `component-catalog.yml` - Catalogue composants (v1.2)
+- ✅ `docs-index.yml` - Index documentation Divio (v1.2)
 - ✅ `.claude/commands/` - Slash commands
 - ✅ `*.sh` - Scripts workflow
 - ✅ `.gitignore`
@@ -910,14 +1407,70 @@ backlog board view
 
 ## 📚 Ressources Externes
 
-- **[Backlog.md](https://github.com/backlog-md/backlog.md)** - Gestion des tâches avec Kanban CLI
-- **[OpenSpec](https://openspec.dev)** - Spécifications formelles pour features complexes
+### Outils Principaux
+
 - **[ClaudeForge](https://github.com/alirezarezvani/ClaudeForge)** - Analyse de codebase et génération CLAUDE.md technique
 - **[Claude Code](https://www.anthropic.com/claude-code)** - CLI officiel Anthropic
+- **[Backlog.md](https://github.com/backlog-md/backlog.md)** - Gestion des tâches avec Kanban CLI (optionnel, mode COMPLET)
+- **[OpenSpec](https://openspec.dev)** - Spécifications formelles pour features complexes (optionnel, mode COMPLET)
+
+### 🔌 MCP Server Recommandé
+
+**[context7](https://github.com/upstash/context7)** - Documentation à jour pour les bibliothèques
+
+**Problème résolu** : Les LLM utilisent souvent des infos obsolètes sur les bibliothèques, générant du code avec des APIs qui n'existent pas.
+
+**Solution context7** : Fournit des docs et exemples de code **spécifiques à la version exacte** de chaque bibliothèque utilisée dans votre projet.
+
+```bash
+# Installation via Claude Desktop config
+# Voir: https://github.com/upstash/context7#installation
+```
+
+**Pourquoi utiliser context7 ?**
+- ✅ Documentation à jour extraite des sources officielles
+- ✅ Exemples de code version-spécifiques (pas de hallucinations d'API)
+- ✅ Zéro friction : ajoutez "use context7" à vos prompts
+- ✅ Complète CLAUDE.md avec infos bibliothèques actuelles
+- ✅ Particulièrement utile pour projets avec nombreuses dépendances
+
+**Utilisation** :
+```bash
+claude
+# Dans vos prompts
+"Comment utiliser React Query v5 pour fetcher data? use context7"
+# context7 récupère la doc officielle React Query v5 → réponse précise
+```
+
+**Intégration avec le workflow** :
+- CLAUDE.md documente l'**architecture projet** (stack, patterns, décisions)
+- context7 fournit la **documentation bibliothèques** (APIs, exemples code)
+- Complémentaires : état projet + docs techniques à jour
 
 ---
 
 ## 📝 Changelog
+
+### v1.2.1 (2025-11-28)
+- ✅ DA-009: Configuration optionnelle Backlog/OpenSpec
+- ✅ Clarification README : Backlog/OpenSpec sont optionnels
+- ✅ Documentation des deux modes (avec/sans Backlog/OpenSpec)
+- ✅ Template docs-index.yml enrichi (règles Divio)
+- ✅ Workflow adapté pour mode léger (YAML seulement)
+
+### v1.2.0 (2025-11-25)
+- ✅ DA-008: Templates YAML ultra-légers (96% réduction tokens)
+- ✅ component-catalog.yml (catalogue composants réutilisables)
+- ✅ docs-index.yml (index documentation Divio)
+- ✅ ADR_TEMPLATE.md (template décisions architecturales)
+- ✅ Enrichissement `/done` (checklist YAML)
+- ✅ Protocole Session enrichi (chargement YAML)
+
+### v1.1.0 (2025-11-25)
+- ✅ DA-006: Framework Divio + Anti-Prolifération
+- ✅ DA-007: Wrapper Skill Specs (architecture hybride)
+- ✅ OpenSpec v2 avec format Divio (1 fichier 4 blocs)
+- ✅ Règles strictes anti-prolifération documentation
 
 ### v1.0.0 (2025-11-24)
 - ✅ Installation automatique complète (8 phases)
@@ -926,13 +1479,13 @@ backlog board view
 - ✅ Script `merge-claude-md.sh` pour fusion
 - ✅ Documentation complète et autoporteuse (README.md unique)
 - ✅ Structure minimaliste (README + scripts/)
-- ✅ 5 décisions architecturales documentées
+- ✅ 5 décisions architecturales documentées (DA-001 à DA-005)
 
 ---
 
 **Happy coding with Claude! 🚀**
 
-**Version**: 1.0.0
-**Last Updated**: 2025-11-24
+**Version**: 1.2.1
+**Last Updated**: 2025-11-28
 **Maintainers**: @fgitconseil
 **License**: MIT
