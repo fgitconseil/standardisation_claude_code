@@ -1,0 +1,32 @@
+# Component Catalog - Machine-readable format for Claude Code
+# Chargé automatiquement au startup (< 100 tokens)
+#
+# Format optimisé pour LLM:
+# - Ultra-compact YAML (pas de verbosité Markdown)
+# - Liste vide = ~80 tokens
+# - Projet mature 30 composants = ~120 tokens (vs ~2000 tokens Markdown)
+#
+# Maintenance: Voir `/done` command pour checklist
+
+stats:
+  total: 0
+  ui: 0
+  backend: 0
+  infra: 0
+  util: 0
+
+components: []
+  # Example d'ajout:
+  # - name: UserAuth
+  #   type: backend
+  #   version: v1.0.0
+  #   stack: FastAPI
+  #   file: src/auth/user_auth.py
+  #
+  # - name: Button
+  #   type: ui
+  #   version: v2.1.0
+  #   stack: React
+  #   file: src/components/Button.tsx
+  #
+  # Types valides: ui, backend, infra, util

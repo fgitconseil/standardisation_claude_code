@@ -72,6 +72,40 @@ if [ ! -d "$TARGET_DIR" ]; then
 fi
 
 # ══════════════════════════════════════════════════════════════════
+# Choix du mode d'installation
+# ══════════════════════════════════════════════════════════════════
+
+echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${CYAN} CHOIX DU MODE                                                  ${NC}"
+echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
+echo ""
+echo "Deux modes disponibles :"
+echo ""
+echo -e "${GREEN}1. Mode COMPLET (défaut)${NC}"
+echo "   ✅ ClaudeForge + Backlog.md + OpenSpec"
+echo "   ✅ Gestion tâches Kanban intégrée"
+echo "   ✅ Specs formelles Divio"
+echo "   ✅ Workflow : /context → /task → /plan → /spec → /work → /done → /ship"
+echo ""
+echo -e "${YELLOW}2. Mode LÉGER${NC}"
+echo "   ✅ ClaudeForge uniquement"
+echo "   ✅ YAML files (component-catalog.yml, docs-index.yml)"
+echo "   ✅ Utilise GitHub Issues ou outil externe pour tâches"
+echo "   ✅ Workflow : /context → /plan → /doc → /done → /ship"
+echo ""
+read -p "Choisir le mode (1 ou 2) [défaut: 1]: " MODE_CHOICE
+MODE_CHOICE=${MODE_CHOICE:-1}
+
+if [ "$MODE_CHOICE" = "2" ]; then
+    INSTALL_MODE="light"
+    echo -e "${YELLOW}📦 Mode LÉGER sélectionné${NC}"
+else
+    INSTALL_MODE="full"
+    echo -e "${GREEN}📦 Mode COMPLET sélectionné${NC}"
+fi
+echo ""
+
+# ══════════════════════════════════════════════════════════════════
 # PHASE 0 : Vérification Node.js/npm
 # ══════════════════════════════════════════════════════════════════
 
@@ -153,40 +187,50 @@ fi
 echo ""
 
 # ══════════════════════════════════════════════════════════════════
-# PHASE 2 : Installation Backlog.md
+# PHASE 2 : Installation Backlog.md (si mode COMPLET)
 # ══════════════════════════════════════════════════════════════════
 
-echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE} PHASE 2 : Installation Backlog.md (gestion des tâches)        ${NC}"
-echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-echo ""
+if [ "$INSTALL_MODE" = "full" ]; then
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${BLUE} PHASE 2 : Installation Backlog.md (gestion des tâches)        ${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+    echo ""
 
-if check_command backlog; then
-    BACKLOG_VERSION=$(backlog --version 2>/dev/null || echo "installé")
-    echo -e "${GREEN}✅ Backlog.md déjà installé ($BACKLOG_VERSION)${NC}"
+    if check_command backlog; then
+        BACKLOG_VERSION=$(backlog --version 2>/dev/null || echo "installé")
+        echo -e "${GREEN}✅ Backlog.md déjà installé ($BACKLOG_VERSION)${NC}"
+    else
+        install_node_tool "Backlog.md" "backlog.md"
+    fi
+
+    echo ""
 else
-    install_node_tool "Backlog.md" "backlog.md"
+    echo -e "${YELLOW}⏭️  PHASE 2 SKIPPED : Backlog.md (mode léger)${NC}"
+    echo ""
 fi
 
-echo ""
-
 # ══════════════════════════════════════════════════════════════════
-# PHASE 3 : Installation OpenSpec
+# PHASE 3 : Installation OpenSpec (si mode COMPLET)
 # ══════════════════════════════════════════════════════════════════
 
-echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE} PHASE 3 : Installation OpenSpec (spécifications)              ${NC}"
-echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-echo ""
+if [ "$INSTALL_MODE" = "full" ]; then
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${BLUE} PHASE 3 : Installation OpenSpec (spécifications)              ${NC}"
+    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+    echo ""
 
-if check_command openspec; then
-    OPENSPEC_VERSION=$(openspec --version 2>/dev/null || echo "installé")
-    echo -e "${GREEN}✅ OpenSpec déjà installé ($OPENSPEC_VERSION)${NC}"
+    if check_command openspec; then
+        OPENSPEC_VERSION=$(openspec --version 2>/dev/null || echo "installé")
+        echo -e "${GREEN}✅ OpenSpec déjà installé ($OPENSPEC_VERSION)${NC}"
+    else
+        install_node_tool "OpenSpec" "openspec"
+    fi
+
+    echo ""
 else
-    install_node_tool "OpenSpec" "openspec"
+    echo -e "${YELLOW}⏭️  PHASE 3 SKIPPED : OpenSpec (mode léger)${NC}"
+    echo ""
 fi
-
-echo ""
 
 # ══════════════════════════════════════════════════════════════════
 # PHASE 4 : Copie des scripts du workflow
@@ -200,8 +244,8 @@ echo ""
 SCRIPTS=(
     "setup-project.sh"
     "setup-commands.sh"
+    "setup-commands-light.sh"
     "merge-claude-md.sh"
-    "workflow_final_complet_autoporteur.md"
 )
 
 for script in "${SCRIPTS[@]}"; do
@@ -298,18 +342,78 @@ echo -e "${BLUE} PHASE 7 : Création des slash commands                         
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 echo ""
 
-bash "$TARGET_DIR/setup-commands.sh" || {
-    echo -e "${YELLOW}⚠️  Erreur création des commands${NC}"
-}
+if [ "$INSTALL_MODE" = "light" ]; then
+    # Mode léger : copier templates depuis templates/commands
+    mkdir -p "$TARGET_DIR/.claude/commands"
+
+    if [ -d "$SCRIPT_DIR/../templates/commands" ]; then
+        cp "$SCRIPT_DIR/../templates/commands"/*.md "$TARGET_DIR/.claude/commands/" 2>/dev/null || {
+            echo -e "${YELLOW}⚠️  Templates commands non trouvés, utilisation du script de fallback${NC}"
+            bash "$TARGET_DIR/setup-commands-light.sh" || true
+        }
+        echo -e "${GREEN}✅ Slash commands copiés (mode léger)${NC}"
+        echo "   Commands: /context, /plan, /doc, /done, /ship"
+    else
+        echo -e "${YELLOW}⚠️  Dossier templates/commands non trouvé${NC}"
+        bash "$TARGET_DIR/setup-commands-light.sh" || true
+    fi
+else
+    # Mode complet : utiliser le script classique
+    bash "$TARGET_DIR/setup-commands.sh" || {
+        echo -e "${YELLOW}⚠️  Erreur création des commands${NC}"
+    }
+fi
 
 echo ""
 
 # ══════════════════════════════════════════════════════════════════
-# PHASE 8 : État des lieux final
+# PHASE 8 : Initialisation Documents Structurants (YAML)
 # ══════════════════════════════════════════════════════════════════
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE} PHASE 8 : État des lieux du projet                            ${NC}"
+echo -e "${BLUE} PHASE 8 : Initialisation Documents Structurants (YAML)        ${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo ""
+
+echo -e "${CYAN}📄 Copie templates YAML optimisés...${NC}"
+
+# docs-index.yml
+if [ ! -f "docs-index.yml" ]; then
+    if [ -f "$SCRIPT_DIR/../templates/docs-index.yml" ]; then
+        cp "$SCRIPT_DIR/../templates/docs-index.yml" "docs-index.yml"
+        echo -e "${GREEN}   ✅ docs-index.yml créé (format machine-readable)${NC}"
+    else
+        echo -e "${YELLOW}   ⚠️  Template docs-index.yml non trouvé${NC}"
+    fi
+else
+    echo -e "${GREEN}   ✅ docs-index.yml existe déjà (préservé)${NC}"
+fi
+
+# component-catalog.yml
+if [ ! -f "component-catalog.yml" ]; then
+    if [ -f "$SCRIPT_DIR/../templates/component-catalog.yml" ]; then
+        cp "$SCRIPT_DIR/../templates/component-catalog.yml" "component-catalog.yml"
+        echo -e "${GREEN}   ✅ component-catalog.yml créé (format machine-readable)${NC}"
+    else
+        echo -e "${YELLOW}   ⚠️  Template component-catalog.yml non trouvé${NC}"
+    fi
+else
+    echo -e "${GREEN}   ✅ component-catalog.yml existe déjà (préservé)${NC}"
+fi
+
+echo ""
+echo -e "${CYAN}💡 Ces fichiers YAML sont chargés au démarrage Claude (~140 tokens)${NC}"
+echo -e "${CYAN}   • component-catalog.yml : Composants réutilisables${NC}"
+echo -e "${CYAN}   • docs-index.yml : Index documentation Divio${NC}"
+echo -e "${CYAN}   → Évite duplication en consultant l'existant avant création${NC}"
+echo ""
+
+# ══════════════════════════════════════════════════════════════════
+# PHASE 9 : État des lieux final
+# ══════════════════════════════════════════════════════════════════
+
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE} PHASE 9 : État des lieux du projet                            ${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 echo ""
 
@@ -351,7 +455,9 @@ echo "📄 Fichiers créés :"
 echo "   ✅ CLAUDE.md (état de la codebase)"
 echo "   ✅ backlog.md + backlog/ (gestion des tâches)"
 echo "   ✅ openspec/ (spécifications)"
-echo "   ✅ .claude/commands/ (7 slash commands)"
+echo "   ✅ .claude/commands/ (7+ slash commands)"
+echo "   ✅ component-catalog.yml (composants réutilisables)"
+echo "   ✅ docs-index.yml (index documentation Divio)"
 echo ""
 
 # ══════════════════════════════════════════════════════════════════

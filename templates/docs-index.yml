@@ -1,0 +1,52 @@
+# Documentation Index - Machine-readable Divio structure
+# Chargé automatiquement au startup (< 80 tokens)
+#
+# ⚠️ IMPORTANT : Organisation de la documentation
+# - CHAQUE document doit contenir les 4 blocs Divio (Tutorial, How-to, Reference, Explanation)
+# - Documents organisés par fonction/domaine (ex: backend/, frontend/, infrastructure/)
+# - Classification ici = Aspect DOMINANT du document (pour navigation rapide)
+# - Un même fichier peut apparaître dans plusieurs catégories si pertinent
+#
+# Format optimisé pour LLM:
+# - 4 quadrants Divio en YAML compact
+# - Projet mature 50 docs = ~200 tokens (vs ~3000 tokens Markdown)
+#
+# Framework Divio:
+# - tutorials: Documents à dominante apprentissage (getting started, guides)
+# - howto: Documents à dominante résolution problèmes (troubleshooting)
+# - reference: Documents à dominante information technique (API, config)
+# - explanation: Documents à dominante compréhension (architecture, décisions)
+#
+# Maintenance: Voir `/done` ou `/doc` commands
+
+tutorials: []
+  # Example:
+  # - name: Getting Started
+  #   file: docs/tutorials/getting-started.md
+  #
+  # - name: First Feature
+  #   file: docs/tutorials/first-feature.md
+
+howto: []
+  # Example:
+  # - name: Deploy to Production
+  #   file: docs/howto/deploy-prod.md
+  #
+  # - name: Debug Performance Issues
+  #   file: docs/howto/debug-perf.md
+
+reference: []
+  # Example:
+  # - name: API Reference
+  #   file: docs/reference/api.md
+  #
+  # - name: Configuration Options
+  #   file: docs/reference/config.md
+
+explanation: []
+  # Example:
+  # - name: Architecture Decisions
+  #   file: docs/explanation/architecture.md
+  #
+  # - name: Design Principles
+  #   file: docs/explanation/principles.md

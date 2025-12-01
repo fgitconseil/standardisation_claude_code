@@ -79,19 +79,33 @@ cat >> "$OUTPUT_FILE" << 'PART_A'
 1. ✅ Lire ce fichier (CLAUDE.md)
 2. ✅ Lire `backlog.md` pour les tâches en cours
 3. ✅ Lire `openspec/project.md` pour les conventions (si existe)
-4. ✅ Exécuter `backlog board view` pour voir le Kanban
-5. ✅ Exécuter `openspec list` pour voir les specs actives (si existe)
-6. ✅ Confirmer la compréhension et demander "On continue sur quoi ?"
+4. ✅ Lire `component-catalog.yml` pour les composants réutilisables
+5. ✅ Lire `docs-index.yml` pour la documentation existante
+6. ✅ Exécuter `backlog board view` pour voir le Kanban
+7. ✅ Exécuter `openspec list` pour voir les specs actives (si existe)
+8. ✅ **Analyser avant d'agir** :
+   - Vérifier `component-catalog.yml` : Un composant similaire existe-t-il ?
+   - Vérifier `docs-index.yml` : Une doc sur ce sujet existe-t-elle ?
+   - **PRINCIPE : Réutiliser > Créer**
+9. ✅ Confirmer la compréhension et demander "On continue sur quoi ?"
+
+**RÈGLES ANTI-DUPLICATION :**
+- ❌ NE PAS créer de documentation redondante
+- ✅ TOUJOURS consulter `component-catalog.yml` avant de créer un nouveau composant
+- ✅ TOUJOURS consulter `docs-index.yml` avant de créer une nouvelle documentation
 
 **SI PERTE DE CONTEXTE :**
 1. 🚨 Signaler : "Je dois relire le contexte"
-2. 🚨 Relire CLAUDE.md + backlog.md + openspec/project.md
+2. 🚨 Relire CLAUDE.md + backlog.md + openspec/project.md + component-catalog.yml + docs-index.yml
 3. 🚨 Reprendre sans demander de répéter
 
 **AVANT FIN DE SESSION :**
 1. 📝 Mettre à jour les tâches Backlog
 2. 📝 Archiver les specs OpenSpec complétées
 3. 📝 Mettre à jour "État du Projet" dans ce fichier
+4. 📝 Mettre à jour `component-catalog.yml` si nouveau composant créé
+5. 📝 Mettre à jour `docs-index.yml` si nouvelle documentation créée
+6. 📝 Ajouter DA-XXX dans README.md si décision architecturale prise
 
 ### Principes d'Implémentation
 
