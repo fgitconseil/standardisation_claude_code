@@ -4,7 +4,7 @@
 >
 > Transforme n'importe quel projet en projet optimisé pour Claude Code avec un état des lieux complet de la codebase.
 
-**Version**: 1.2.1 | **Last Updated**: 2025-11-28 | **Maintainers**: @fgitconseil
+**Version**: 1.2.2 | **Last Updated**: 2025-12-02 | **Maintainers**: @fgitconseil
 
 ---
 
@@ -1442,6 +1442,22 @@ claude
 # context7 récupère la doc officielle React Query v5 → réponse précise
 ```
 
+**💡 Recommandation Post-Installation : Ajoutez une règle pour auto-invoquer Context7**
+
+Après avoir installé Context7, améliorez votre workflow en ajoutant une règle dans votre **CLAUDE.md** pour ne pas avoir à taper "use context7" dans chaque prompt.
+
+Ajoutez cette règle dans la section **"# Instructions pour Claude"** de votre CLAUDE.md :
+
+```markdown
+## Règles d'Utilisation Context7
+
+Always use context7 when I need code generation, setup or configuration steps, or
+library/API documentation. This means you should automatically use the Context7 MCP
+tools to resolve library id and get library docs without me having to explicitly ask.
+```
+
+Après cela, Context7 sera automatiquement invoqué pour toutes les questions liées aux bibliothèques, sans avoir à le demander explicitement.
+
 **Intégration avec le workflow** :
 - CLAUDE.md documente l'**architecture projet** (stack, patterns, décisions)
 - context7 fournit la **documentation bibliothèques** (APIs, exemples code)
@@ -1450,6 +1466,12 @@ claude
 ---
 
 ## 📝 Changelog
+
+### v1.2.2 (2025-12-02)
+- ✅ Ajout recommandation Context7 : règle auto-invocation dans CLAUDE.md
+- ✅ Intégration règle Context7 dans merge-claude-md.sh
+- ✅ Documentation complète usage Context7 avec MCP
+- ✅ Structure minimale (7 fichiers) - nettoyage docs obsolètes
 
 ### v1.2.1 (2025-11-28)
 - ✅ DA-009: Configuration optionnelle Backlog/OpenSpec

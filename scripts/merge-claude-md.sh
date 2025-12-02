@@ -107,6 +107,12 @@ cat >> "$OUTPUT_FILE" << 'PART_A'
 5. 📝 Mettre à jour `docs-index.yml` si nouvelle documentation créée
 6. 📝 Ajouter DA-XXX dans README.md si décision architecturale prise
 
+### Règles d'Utilisation Context7
+
+Always use context7 when I need code generation, setup or configuration steps, or
+library/API documentation. This means you should automatically use the Context7 MCP
+tools to resolve library id and get library docs without me having to explicitly ask.
+
 ### Principes d'Implémentation
 
 **OBLIGATOIRE :**
